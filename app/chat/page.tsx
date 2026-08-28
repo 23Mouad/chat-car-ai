@@ -209,7 +209,7 @@ export default function ChatPage() {
         <div className="flex-1 flex flex-col md:my-5 md:rounded-[32px] md:overflow-hidden md:shadow-[0_28px_90px_rgba(108,124,255,0.18)] glass">
 
           {/* ── Header ─────────────────────────────── */}
-          <header className="flex items-center justify-between px-4 py-3 border-b border-white/50 bg-white/60 backdrop-blur-xl flex-shrink-0">
+          <header className="sticky top-0 z-50 flex items-center justify-between px-4 py-3 border-b border-white/50 bg-white/60 backdrop-blur-xl flex-shrink-0">
             {/* Left: History + New */}
             <div className="flex items-center gap-1.5">
               <button

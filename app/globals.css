@@ -1,26 +1,113 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* =============================================
+   AutoMind Design System
+   ============================================= */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Typography */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /* Brand colors */
+  --color-brand-purple: #6C7CFF;
+  --color-brand-violet: #9B6CFF;
+  --color-brand-pink: #C86CFF;
+  --color-brand-cyan: #9FE7DD;
+
+  /* Semantic text */
+  --color-heading: #14142B;
+  --color-body: #5B5B70;
+  --color-muted: #A0A0B8;
+
+  /* Background */
+  --color-bg: #F5F6FC;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Base */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #F5F6FC;
+  color: #14142B;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar utilities */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Thin scrollbar for message list */
+.scrollbar-thin::-webkit-scrollbar { width: 4px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(155, 108, 255, 0.25);
+  border-radius: 2px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(155, 108, 255, 0.4);
+}
+
+/* Gradient text utility */
+.gradient-text {
+  background: linear-gradient(135deg, #6C7CFF 0%, #9B6CFF 50%, #C86CFF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass panel base */
+.glass {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 32px rgba(108, 124, 255, 0.08);
+}
+
+/* Animated gradient orb background */
+.orb-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+/* Prose overrides for chat bubbles */
+.prose {
+  color: inherit;
+  max-width: none;
+}
+.prose p { margin-top: 0.35rem; margin-bottom: 0.35rem; }
+.prose ul { margin-top: 0.35rem; margin-bottom: 0.35rem; padding-left: 1.2rem; }
+.prose li { margin-top: 0.2rem; margin-bottom: 0.2rem; }
+.prose strong { color: #14142B; }
+.prose code {
+  background: rgba(108, 124, 255, 0.1);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-size: 0.875em;
+  color: #6C7CFF;
+}
+
+/* Motion safe: disable heavy animations when user prefers reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Safe area for mobile input bar */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }

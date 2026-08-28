@@ -189,7 +189,7 @@ export default function ChatPage() {
   const showTypingIndicator = isStreaming && (messages.length === 0 || messages[messages.length - 1]?.content === "");
 
   return (
-    <div className="relative min-h-dvh bg-[#F5F6FC] flex items-stretch justify-center overflow-hidden">
+    <div className="relative h-dvh bg-[#F5F6FC] flex items-stretch justify-center overflow-hidden">
       {/* Background orbs */}
       <div className="orb-bg">
         <GradientOrb color="radial-gradient(circle, #C9B6FF, transparent)" size={520} top="-80px" left="-130px" opacity={0.45} delay={0} />
@@ -205,7 +205,7 @@ export default function ChatPage() {
       />
 
       {/* Chat card */}
-      <div className="relative z-10 w-full max-w-[540px] flex flex-col min-h-dvh">
+      <div className="relative z-10 w-full max-w-[540px] flex flex-col h-dvh">
         <div className="flex-1 flex flex-col md:my-5 md:rounded-[32px] md:overflow-hidden md:shadow-[0_28px_90px_rgba(108,124,255,0.18)] glass">
 
           {/* ── Header ─────────────────────────────── */}

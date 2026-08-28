@@ -3,6 +3,8 @@ import { buildSystemPrompt } from "@/lib/systemPrompt";
 import type { ChatMessage, UserProfile } from "@/types/chat";
 import OpenAI from "openai";
 
+export const runtime = "edge";
+
 // Instantiate directly in route to avoid module-level env errors during build
 function getClient() {
   const apiKey = process.env.NVIDIA_API_KEY;

@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { Mail, Phone, MapPin, ExternalLink, Car, Github, Globe } from "lucide-react";
+import { Mail, Phone, MapPin, ExternalLink, Car } from "lucide-react";
 
 export function AlgorixFooter() {
   return (

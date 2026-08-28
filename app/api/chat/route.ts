@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
 
     const openai = getClient();
 
+    // @ts-expect-error – NVIDIA-specific extension not in OpenAI types
     const stream = await openai.chat.completions.create({
       model: MODEL,
       messages: apiMessages,
@@ -50,7 +51,6 @@ export async function POST(req: NextRequest) {
       max_tokens: 1024,
       stream: true,
       // Disable chain-of-thought thinking for faster, cleaner responses
-      // @ts-expect-error – NVIDIA-specific extension not in OpenAI types
       chat_template_kwargs: { thinking: false },
     });
 

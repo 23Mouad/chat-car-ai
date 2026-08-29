@@ -9,7 +9,7 @@ export const LANGS: { code: Lang; label: string; flag: string; dir: "ltr" | "rtl
   { code: "tr", label: "TR", flag: "🇹🇷", dir: "ltr" },
 ];
 
-export const translations = {
+export const translations: Record<Lang, Translations> = {
   en: {
     dir: "ltr" as const,
     nav: {

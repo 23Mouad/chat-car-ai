@@ -36,7 +36,7 @@ export function AlgorixFooter() {
                   alt="Talk Cars"
                   width={130}
                   height={38}
-                  className="h-9 w-auto object-contain brightness-0 invert"
+                  className="h-9 w-auto object-contain "
                 />
               </div>
               <p className="text-sm text-white/55 leading-relaxed mb-4 max-w-[220px]">

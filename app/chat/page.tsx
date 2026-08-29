@@ -239,10 +239,10 @@ export default function ChatPage() {
             {/* Center: Brand */}
             <Link href="/" className="flex flex-col items-center group">
               <Image
-                src="/logoCont.png"
+                src="/logo1.png"
                 alt="Talk Cars"
-                width={110}
-                height={32}
+                width={100}
+                height={100}
                 className="h-8 w-auto object-contain"
                 priority
               />
@@ -321,7 +321,7 @@ export default function ChatPage() {
                     animate={{ scale: [1, 1.04, 1], rotate: [0, 2, -2, 0] }}
                     transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                   >
-                    <Image src="/logo1.png" alt="Talk Cars" width={56} height={56} className="w-12 h-12 object-contain" />
+                    <Image src="/logo1.png" alt="Talk Cars" width={100} height={100} className="w-12 h-12 object-contain" />
                   </motion.div>
 
                   <div>

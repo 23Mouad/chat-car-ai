@@ -25,11 +25,11 @@ export function Hero() {
         {/* Logo */}
         <Link href="/" className="flex items-center flex-shrink-0">
           <Image
-            src="/logoCont.png"
+            src="/logo1.png"
             alt="Talk Cars"
             width={140}
-            height={40}
-            className="h-10 w-auto object-contain"
+            height={140}
+            className="h-10 w-auto object-contain w-18 h-18"
             priority
           />
         </Link>

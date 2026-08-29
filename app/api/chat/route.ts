@@ -15,7 +15,7 @@ function getClient() {
   });
 }
 
-const MODEL = process.env.NVIDIA_MODEL ?? "deepseek-ai/deepseek-v4-pro-0813";
+const MODEL = process.env.NVIDIA_MODEL ?? "nvidia/nemotron-3-super-120b-a12b";
 
 export async function POST(req: NextRequest) {
   try {
@@ -48,12 +48,11 @@ export async function POST(req: NextRequest) {
     const stream = await openai.chat.completions.create({
       model: MODEL,
       messages: apiMessages,
-      temperature: 0.9,
+      temperature: 1,
       top_p: 0.95,
-      max_tokens: 1024,
+      max_tokens: 16384,
       stream: true,
-      // Disable chain-of-thought thinking for faster, cleaner responses
-      chat_template_kwargs: { thinking: false },
+      chat_template_kwargs: { enable_thinking: true },
     });
 
     const encoder = new TextEncoder();
@@ -62,6 +61,8 @@ export async function POST(req: NextRequest) {
       async start(controller) {
         try {
           for await (const chunk of stream) {
+            // We omit streaming reasoning_content to the client to keep the UI clean
+            
             const content = chunk.choices[0]?.delta?.content ?? "";
             if (content) {
               controller.enqueue(encoder.encode(content));

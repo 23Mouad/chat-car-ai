@@ -12,6 +12,7 @@ export interface UserProfile {
   age?: string;
   country?: string;
   gender?: string;
+  language?: "English" | "French" | "Arabic" | "Turkish";
 }
 
 export type ProfileKey = keyof UserProfile;

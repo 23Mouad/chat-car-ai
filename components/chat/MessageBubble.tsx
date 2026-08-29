@@ -10,9 +10,10 @@ interface MessageBubbleProps {
   index?: number;
 }
 
-// Strip hidden profile tags before rendering
+// Strip hidden profile tags before rendering — last line of defence
 function stripProfileTag(content: string): string {
-  return content.replace(/<!--profile:\{.*?\}-->/gs, "").trim();
+  const idx = content.indexOf("<!--profile:");
+  return idx === -1 ? content : content.slice(0, idx).trim();
 }
 
 function formatTime(ts: number) {

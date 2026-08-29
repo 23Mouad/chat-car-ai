@@ -11,4 +11,4 @@ export const openaiClient = new OpenAI({
 });
 
 export const NVIDIA_MODEL =
-  process.env.NVIDIA_MODEL ?? "deepseek-ai/deepseek-r1-0528";
+  process.env.NVIDIA_MODEL ?? "nvidia/nemotron-3-super-120b-a12b";

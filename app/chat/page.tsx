@@ -16,29 +16,28 @@ import type { ChatMessage, UserProfile } from "@/types/chat";
 
 /* ─── Helpers ─────────────────────────────────────────────── */
 
+/** Split rawContent on <!--profile: and return [visibleText, rawTagAndAfter] */
+function splitOnProfileTag(text: string): [string, string] {
+  const idx = text.indexOf("<!--profile:");
+  if (idx === -1) return [text, ""];
+  return [text.slice(0, idx).trim(), text.slice(idx)];
+}
+
 function parseProfileUpdate(text: string): Partial<UserProfile> {
-  const match = text.match(/<!--profile:(\{.*?\})-->/s);
+  const match = text.match(/<!--profile:\s*(\{.*?\})/s);
   if (!match) return {};
   try { return JSON.parse(match[1]) as Partial<UserProfile>; }
   catch { return {}; }
 }
 
 /**
- * Split a completed AI response into logical message chunks.
- * We split on double (or more) newlines and group emoji-headed sections.
- * The hidden <!--profile:--> tag is preserved on the last chunk only.
+ * Split a completed AI response (already clean, no profile tag) into bubbles.
  */
 function splitIntoMessages(rawContent: string, baseId: string): ChatMessage[] {
-  // Extract the profile tag so we can re-attach it to the last part
-  const profileMatch = rawContent.match(/(<!--profile:\{.*?\}-->)/s);
-  const profileTag = profileMatch?.[1] ?? "";
-  const clean = rawContent.replace(/<!--profile:\{.*?\}-->/gs, "").trim();
-
-  // Split on blank lines (2+ newlines)
-  const parts = clean
+  const parts = rawContent
     .split(/\n{2,}/)
     .map((p) => p.trim())
-    .filter((p) => p.length > 10); // drop stray whitespace chunks
+    .filter((p) => p.length > 10);
 
   if (parts.length <= 1) {
     return [{ id: baseId, role: "assistant", content: rawContent, timestamp: Date.now() }];
@@ -48,8 +47,8 @@ function splitIntoMessages(rawContent: string, baseId: string): ChatMessage[] {
   return parts.map((part, i) => ({
     id: i === 0 ? baseId : `${baseId}-${i}`,
     role: "assistant" as const,
-    content: i === parts.length - 1 && profileTag ? `${part}\n${profileTag}` : part,
-    timestamp: now + i * 80, // stagger timestamps slightly for ordering
+    content: part,
+    timestamp: now + i * 80,
   }));
 }
 
@@ -157,15 +156,20 @@ export default function ChatPage() {
           const { done, value } = await reader.read();
           if (done) break;
           fullContent += decoder.decode(value, { stream: true });
-          updateLastMessage(fullContent);
+          // Always strip everything from <!--profile: onwards before storing
+          const [visibleContent] = splitOnProfileTag(fullContent);
+          updateLastMessage(visibleContent);
         }
 
-        // Parse profile
-        const profileUpdates = parseProfileUpdate(fullContent);
-        if (Object.keys(profileUpdates).length > 0) updateProfile(profileUpdates);
+        // Parse profile from the raw fullContent (the part after <!--profile:)
+        const [cleanContent, tagPart] = splitOnProfileTag(fullContent);
+        if (tagPart) {
+          const profileUpdates = parseProfileUpdate(tagPart);
+          if (Object.keys(profileUpdates).length > 0) updateProfile(profileUpdates);
+        }
 
-        // Split response into multiple bubbles
-        const split = splitIntoMessages(fullContent, aiMsgId);
+        // Split response into multiple bubbles (already clean)
+        const split = splitIntoMessages(cleanContent, aiMsgId);
         if (split.length > 1) {
           replaceLastMessages(split);
         }
@@ -253,41 +257,89 @@ export default function ChatPage() {
           {/* ── Messages ───────────────────────────── */}
           <div className="flex-1 overflow-y-auto scrollbar-thin px-4 py-5 flex flex-col gap-4" id="message-list">
             {showEmptyState ? (
-              <motion.div
-                className="flex-1 flex flex-col items-center justify-center text-center py-10 gap-5"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                {/* Animated logo */}
+              !profile.language ? (
                 <motion.div
-                  className="w-20 h-20 rounded-full bg-gradient-to-br from-[#6C7CFF] via-[#9B6CFF] to-[#C86CFF] flex items-center justify-center shadow-[0_12px_32px_rgba(108,124,255,0.4)]"
-                  animate={{ scale: [1, 1.04, 1], rotate: [0, 2, -2, 0] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                  className="flex-1 flex flex-col items-center justify-center py-10 gap-8"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
                 >
-                  <Car className="w-10 h-10 text-white" />
+                  <div className="text-center mb-4">
+                    <h2 className="text-2xl font-bold text-[#14142B] mb-2">Choose Your Language</h2>
+                    <p className="text-[#5B5B70] text-sm">How would you like AutoMind to speak?</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-6 w-full max-w-[280px]">
+                    <button
+                      onClick={() => updateProfile({ language: "English" })}
+                      className="group flex flex-col items-center justify-center aspect-square bg-white rounded-3xl shadow-[0_8px_24px_rgba(108,124,255,0.12)] hover:shadow-[0_16px_32px_rgba(108,124,255,0.2)] transition-all duration-300 hover:-translate-y-1 border-2 border-transparent hover:border-[#4A90E2]/20"
+                    >
+                      <span className="text-5xl font-bold bg-gradient-to-br from-[#4A90E2] to-[#2C5282] text-transparent bg-clip-text mb-2 transition-transform group-hover:scale-110">E</span>
+                      <span className="text-sm font-medium text-[#5B5B70]">English</span>
+                    </button>
+
+                    <button
+                      onClick={() => updateProfile({ language: "French" })}
+                      className="group flex flex-col items-center justify-center aspect-square bg-white rounded-3xl shadow-[0_8px_24px_rgba(255,108,108,0.12)] hover:shadow-[0_16px_32px_rgba(255,108,108,0.2)] transition-all duration-300 hover:-translate-y-1 border-2 border-transparent hover:border-[#E24A4A]/20"
+                    >
+                      <span className="text-5xl font-bold bg-gradient-to-br from-[#E24A4A] to-[#822C2C] text-transparent bg-clip-text mb-2 transition-transform group-hover:scale-110">F</span>
+                      <span className="text-sm font-medium text-[#5B5B70]">French</span>
+                    </button>
+
+                    <button
+                      onClick={() => updateProfile({ language: "Arabic" })}
+                      className="group flex flex-col items-center justify-center aspect-square bg-white rounded-3xl shadow-[0_8px_24px_rgba(46,204,113,0.12)] hover:shadow-[0_16px_32px_rgba(46,204,113,0.2)] transition-all duration-300 hover:-translate-y-1 border-2 border-transparent hover:border-[#2ECC71]/20"
+                    >
+                      <span className="text-6xl font-bold bg-gradient-to-br from-[#2ECC71] to-[#1E8449] text-transparent bg-clip-text mb-2 transition-transform group-hover:scale-110">ع</span>
+                      <span className="text-sm font-medium text-[#5B5B70]">Arabic</span>
+                    </button>
+
+                    <button
+                      onClick={() => updateProfile({ language: "Turkish" })}
+                      className="group flex flex-col items-center justify-center aspect-square bg-white rounded-3xl shadow-[0_8px_24px_rgba(243,156,18,0.12)] hover:shadow-[0_16px_32px_rgba(243,156,18,0.2)] transition-all duration-300 hover:-translate-y-1 border-2 border-transparent hover:border-[#F39C12]/20"
+                    >
+                      <span className="text-5xl font-bold bg-gradient-to-br from-[#F39C12] to-[#B9770E] text-transparent bg-clip-text mb-2 transition-transform group-hover:scale-110">T</span>
+                      <span className="text-sm font-medium text-[#5B5B70]">Turkish</span>
+                    </button>
+                  </div>
                 </motion.div>
-
-                <div>
-                  <h2 className="text-2xl font-bold text-[#14142B] mb-2">Hello there! 👋</h2>
-                  <p className="text-[#5B5B70] text-sm max-w-[260px] leading-relaxed">
-                    I'm AutoMind — your AI car expert. Ask me anything about cars!
-                  </p>
-                </div>
-
-                {/* Feature pills */}
-                <div className="flex flex-wrap justify-center gap-2 max-w-xs">
-                  {["🏎️ Compare cars", "🔋 Best EVs", "💰 Find deals", "🔧 Fix it"].map((label) => (
-                    <span key={label} className="px-3 py-1.5 rounded-full bg-white/70 border border-[#E8E8F8] text-xs text-[#5B5B70] font-medium shadow-sm">
-                      {label}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="w-full">
-                  <SuggestedChips onSelect={handleSend} />
-                </div>
-              </motion.div>
+              ) : (
+                <motion.div
+                  className="flex-1 flex flex-col items-center justify-center text-center py-10 gap-5"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  {/* Animated logo */}
+                  <motion.div
+                    className="w-20 h-20 rounded-full bg-gradient-to-br from-[#6C7CFF] via-[#9B6CFF] to-[#C86CFF] flex items-center justify-center shadow-[0_12px_32px_rgba(108,124,255,0.4)]"
+                    animate={{ scale: [1, 1.04, 1], rotate: [0, 2, -2, 0] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <Car className="w-10 h-10 text-white" />
+                  </motion.div>
+  
+                  <div>
+                    <h2 className="text-2xl font-bold text-[#14142B] mb-2">Hello there! 👋</h2>
+                    <p className="text-[#5B5B70] text-sm max-w-[260px] leading-relaxed">
+                      I'm AutoMind — your AI car expert. Ask me anything about cars!
+                    </p>
+                  </div>
+  
+                  {/* Feature pills */}
+                  <div className="flex flex-wrap justify-center gap-2 max-w-xs">
+                    {["🏎️ Compare cars", "🔋 Best EVs", "💰 Find deals", "🔧 Fix it"].map((label) => (
+                      <span key={label} className="px-3 py-1.5 rounded-full bg-white/70 border border-[#E8E8F8] text-xs text-[#5B5B70] font-medium shadow-sm">
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+  
+                  <div className="w-full">
+                    <SuggestedChips onSelect={handleSend} />
+                  </div>
+                </motion.div>
+              )
             ) : (
               <>
                 {messages.map((msg, i) => (

@@ -4,9 +4,15 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { GradientOrb } from "@/components/ui/GradientOrb";
-import { Car, Zap, MessageCircle } from "lucide-react";
+import { Zap, MessageCircle } from "lucide-react";
+import { LangSwitcher } from "@/components/ui/LangSwitcher";
+import { useLang } from "@/lib/langContext";
 
 export function Hero() {
+  const { t } = useLang();
+  const n = t.nav;
+  const h = t.hero;
+
   return (
     <section className="relative min-h-screen flex flex-col overflow-hidden">
       {/* Background orbs */}
@@ -15,32 +21,40 @@ export function Hero() {
       <GradientOrb color="radial-gradient(circle, #FFC2E2, transparent)" size={400} bottom="10%" left="20%" opacity={0.4} delay={6} />
 
       {/* Nav */}
-      <nav className="relative z-10 flex items-center justify-between px-6 md:px-12 py-6">
+      <nav className="relative z-10 flex items-center justify-between px-6 md:px-12 py-6 gap-4">
         {/* Logo */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#6C7CFF] to-[#C86CFF] flex items-center justify-center shadow-lg">
-            <Car className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-xl font-bold text-[#14142B] tracking-tight">AutoMind</span>
-        </div>
+        <Link href="/" className="flex items-center flex-shrink-0">
+          <Image
+            src="/logoCont.png"
+            alt="Talk Cars"
+            width={140}
+            height={40}
+            className="h-10 w-auto object-contain"
+            priority
+          />
+        </Link>
 
-        {/* Nav links */}
-        <div className="flex items-center gap-3 md:gap-5">
+        {/* Nav links + Switcher */}
+        <div className="flex items-center gap-3 md:gap-4 flex-wrap justify-end">
           <div className="hidden md:flex items-center gap-5">
-            <Link href="/chat" className="text-sm font-medium text-[#5B5B70] hover:text-[#6C7CFF] transition-colors">Chat</Link>
-            <Link href="#features" className="text-sm font-medium text-[#5B5B70] hover:text-[#6C7CFF] transition-colors">Features</Link>
-            <Link href="#about" className="text-sm font-medium text-[#5B5B70] hover:text-[#6C7CFF] transition-colors">About</Link>
+            <Link href="/chat" className="text-sm font-medium text-[#5B5B70] hover:text-[#6C7CFF] transition-colors">{n.chat}</Link>
+            <Link href="#features" className="text-sm font-medium text-[#5B5B70] hover:text-[#6C7CFF] transition-colors">{n.features}</Link>
+            <Link href="#about" className="text-sm font-medium text-[#5B5B70] hover:text-[#6C7CFF] transition-colors">{n.about}</Link>
           </div>
+
+          {/* Language switcher */}
+          <LangSwitcher />
+
           <Link
             href="/chat"
-            className="px-4 py-2 rounded-full bg-gradient-to-r from-[#6C7CFF] to-[#C86CFF] text-white text-sm font-semibold shadow-[0_4px_16px_rgba(108,124,255,0.35)] hover:shadow-[0_6px_22px_rgba(108,124,255,0.5)] transition-all duration-200"
+            className="px-4 py-2 rounded-full bg-gradient-to-r from-[#6C7CFF] to-[#C86CFF] text-white text-sm font-semibold shadow-[0_4px_16px_rgba(108,124,255,0.35)] hover:shadow-[0_6px_22px_rgba(108,124,255,0.5)] transition-all duration-200 whitespace-nowrap"
           >
-            Start Chatting
+            {n.startChatting}
           </Link>
         </div>
       </nav>
 
-      {/* Algorix badge — top right corner */}
+      {/* Algorix badge — mobile */}
       <motion.a
         href="#about"
         className="absolute top-5 right-6 md:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-white/60 backdrop-blur-sm border border-white/50 shadow-sm"
@@ -48,7 +62,7 @@ export function Hero() {
         animate={{ opacity: 1 }}
         transition={{ delay: 1, duration: 0.5 }}
       >
-        <Image src="/algorix-logo.png" alt="Algorix" width={16} height={16} className="rounded" />
+        <Image src="/algorix/logo alone.png" alt="Algorix" width={16} height={16} className="rounded" />
         <span className="text-[10px] font-bold bg-gradient-to-r from-[#2563EB] to-[#38BDF8] bg-clip-text text-transparent">by ALGORIX</span>
       </motion.a>
 
@@ -63,16 +77,16 @@ export function Hero() {
           >
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/60 backdrop-blur-sm border border-[#9B6CFF]/25 text-[#9B6CFF] text-xs font-semibold mb-6 shadow-sm">
               <Zap className="w-3.5 h-3.5" />
-              AI-Powered Car Expert
+              {h.badge}
             </div>
             <h1 className="text-5xl md:text-6xl font-bold text-[#14142B] leading-[1.1] tracking-tight mb-5">
-              Your AI co-pilot for{" "}
+              {h.title1}{" "}
               <span className="bg-gradient-to-r from-[#6C7CFF] via-[#9B6CFF] to-[#C86CFF] bg-clip-text text-transparent">
-                everything cars.
+                {h.title2}
               </span>
             </h1>
             <p className="text-lg text-[#5B5B70] leading-relaxed mb-8 max-w-md mx-auto lg:mx-0">
-              Ask about models, specs, buying advice, maintenance, EVs, or motorsport. AutoMind knows cars inside out — powered by next-gen AI.
+              {h.subtitle}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
               <Link
@@ -81,13 +95,13 @@ export function Hero() {
                 className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full bg-gradient-to-r from-[#6C7CFF] via-[#9B6CFF] to-[#C86CFF] text-white font-semibold text-base shadow-[0_6px_24px_rgba(108,124,255,0.4)] hover:shadow-[0_8px_30px_rgba(108,124,255,0.55)] hover:scale-[1.02] transition-all duration-200"
               >
                 <MessageCircle className="w-4.5 h-4.5" />
-                Start chatting
+                {h.cta}
               </Link>
               <Link
                 href="#features"
                 className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full bg-white/60 backdrop-blur-sm border border-white/60 text-[#5B5B70] font-semibold text-base hover:bg-white/80 hover:text-[#6C7CFF] transition-all duration-200"
               >
-                See features
+                {h.ctaSecondary}
               </Link>
             </div>
           </motion.div>
@@ -107,30 +121,30 @@ export function Hero() {
             {/* Chat preview */}
             <div className="absolute inset-0 p-4 pt-14 flex flex-col gap-3 bg-gradient-to-b from-[#F5F6FC] to-white/80">
               <div className="flex gap-2 items-end">
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#6C7CFF] to-[#C86CFF] flex items-center justify-center">
-                  <Car className="w-3.5 h-3.5 text-white" />
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#6C7CFF] to-[#C86CFF] flex items-center justify-center overflow-hidden">
+                  <Image src="/logo1.png" alt="Talk Cars" width={28} height={28} className="object-contain" />
                 </div>
                 <div className="bg-white/90 rounded-[16px] rounded-bl-sm px-3 py-2 text-[11px] text-[#14142B] max-w-[200px] shadow-sm border border-white/60">
-                  Hey! Ready to talk cars? 🏎️ What are you curious about?
+                  {t.empty.greeting} {t.empty.subtitle.split("!")[0]}!
                 </div>
               </div>
               <div className="flex justify-end">
                 <div className="bg-gradient-to-br from-[#6C7CFF] to-[#C86CFF] rounded-[16px] rounded-br-sm px-3 py-2 text-[11px] text-white max-w-[160px] shadow-md">
-                  Compare Tesla Model 3 vs BMW i4
+                  {t.empty.pills[0]}
                 </div>
               </div>
               <div className="flex gap-2 items-end">
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#6C7CFF] to-[#C86CFF] flex items-center justify-center">
-                  <Car className="w-3.5 h-3.5 text-white" />
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#6C7CFF] to-[#C86CFF] flex items-center justify-center overflow-hidden">
+                  <Image src="/logo1.png" alt="Talk Cars" width={28} height={28} className="object-contain" />
                 </div>
                 <div className="bg-white/90 rounded-[16px] rounded-bl-sm px-3 py-2 text-[11px] text-[#14142B] max-w-[200px] shadow-sm border border-white/60">
-                  Great comparison! The i4 wins on driving dynamics while the Model 3 leads on tech...
+                  Great comparison! The i4 wins on driving dynamics...
                 </div>
               </div>
               {/* Typing indicator preview */}
               <div className="flex gap-2 items-center">
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#6C7CFF] to-[#C86CFF] flex items-center justify-center">
-                  <Car className="w-3.5 h-3.5 text-white" />
+                <div className="w-7 h-7 rounded-full overflow-hidden bg-gradient-to-br from-[#6C7CFF] to-[#C86CFF] flex items-center justify-center">
+                  <Image src="/logo1.png" alt="Talk Cars" width={28} height={28} className="object-contain" />
                 </div>
                 <div className="bg-white/90 rounded-[16px] rounded-bl-sm px-3 py-2 shadow-sm border border-white/60 flex gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#9B6CFF] animate-bounce" style={{ animationDelay: "0ms" }} />

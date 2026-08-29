@@ -3,9 +3,12 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { Mail, Phone, MapPin, ExternalLink, Car } from "lucide-react";
+import { Mail, Phone, MapPin, ExternalLink } from "lucide-react";
+import { useLang } from "@/lib/langContext";
 
 export function AlgorixFooter() {
+  const { t } = useLang();
+  const f = t.footer;
   return (
     <footer id="about" className="relative mt-8 overflow-hidden">
       {/* Dark gradient band */}
@@ -20,27 +23,30 @@ export function AlgorixFooter() {
         <div className="relative pt-20 pb-10 px-6 md:px-12 max-w-5xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
 
-            {/* Column 1 — AutoMind product */}
+            {/* Column 1 — Talk Cars product */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
             >
-              <div className="flex items-center gap-2.5 mb-3">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#6C7CFF] to-[#C86CFF] flex items-center justify-center shadow-lg">
-                  <Car className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold tracking-tight">AutoMind</span>
+              <div className="mb-3">
+                <Image
+                  src="/logoCont.png"
+                  alt="Talk Cars"
+                  width={130}
+                  height={38}
+                  className="h-9 w-auto object-contain brightness-0 invert"
+                />
               </div>
               <p className="text-sm text-white/55 leading-relaxed mb-4 max-w-[220px]">
-                Your AI co-pilot for everything cars — powered by next-generation language models.
+                {f.tagline}
               </p>
               <Link
                 href="/chat"
                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#9B6CFF] hover:text-[#C86CFF] transition-colors"
               >
-                Launch Chat <ExternalLink className="w-3 h-3" />
+                {f.launchChat} <ExternalLink className="w-3 h-3" />
               </Link>
             </motion.div>
 
@@ -52,30 +58,36 @@ export function AlgorixFooter() {
               transition={{ duration: 0.5, delay: 0.1 }}
             >
               <p className="text-[11px] font-semibold uppercase tracking-widest text-white/35 mb-4">
-                Built & Powered by
+                {f.builtBy}
               </p>
 
-              {/* Algorix logo */}
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-white/5 border border-white/10">
-                  <Image
-                    src="/algorix-logo.png"
-                    alt="Algorix Agency"
-                    width={48}
-                    height={48}
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <div>
-                  <p className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-[#2563EB] to-[#38BDF8] bg-clip-text text-transparent">
-                    ALGORIX
-                  </p>
-                  <p className="text-[11px] text-white/40 -mt-0.5">Agency®</p>
-                </div>
-              </div>
+              {/* Algorix logo — responsive */}
+              <a
+                href="https://algorix-agency.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group inline-flex items-center gap-3 mb-3"
+              >
+                {/* Small screens: icon only */}
+                <Image
+                  src="/algorix/logo alone.png"
+                  alt="Algorix Agency"
+                  width={48}
+                  height={48}
+                  className="block md:hidden w-12 h-12 object-contain rounded-xl bg-white/5 border border-white/10 p-1 group-hover:border-white/25 transition-all"
+                />
+                {/* Medium+ screens: full horizontal logo */}
+                <Image
+                  src="/algorix/logo beside.png"
+                  alt="Algorix Agency"
+                  width={160}
+                  height={48}
+                  className="hidden md:block h-11 w-auto object-contain rounded-xl bg-white/5 border border-white/10 px-2 py-1 group-hover:border-white/25 transition-all"
+                />
+              </a>
 
               <p className="text-xs text-white/50 leading-relaxed max-w-[230px]">
-                Votre partenaire technologique de confiance pour transformer vos idées en solutions digitales innovantes et performantes.
+                {f.tagline}
               </p>
             </motion.div>
 
@@ -87,7 +99,7 @@ export function AlgorixFooter() {
               transition={{ duration: 0.5, delay: 0.2 }}
             >
               <p className="text-[11px] font-semibold uppercase tracking-widest text-white/35 mb-4">
-                Contact Algorix
+                {f.contact}
               </p>
 
               <div className="flex flex-col gap-3">
@@ -129,10 +141,10 @@ export function AlgorixFooter() {
             <p>
               © {new Date().getFullYear()}{" "}
               <span className="text-white/50 font-medium">Algorix Agency</span>
-              {" "}· All rights reserved.
+              {" "}· {f.rights}
             </p>
             <div className="flex items-center gap-1.5">
-              <span>AutoMind is a product of</span>
+              <span>{f.productOf}</span>
               <span className="font-bold bg-gradient-to-r from-[#2563EB] to-[#38BDF8] bg-clip-text text-transparent">
                 Algorix Agency
               </span>

@@ -419,7 +419,7 @@ export default function ChatPage() {
             className="flex-shrink-0 px-4 pt-2 border-t border-white/50 bg-white/50 backdrop-blur-sm"
             style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
           >
-            <ChatInput onSend={handleSend} disabled={isStreaming} />
+            <ChatInput onSend={handleSend} disabled={isStreaming} profileLanguage={profile.language} />
           </div>
         </div>
       </div>

@@ -8,20 +8,26 @@ import { useLang } from "@/lib/langContext";
 interface ChatInputProps {
   onSend: (text: string) => void;
   disabled?: boolean;
+  profileLanguage?: string;
 }
 
-// BCP-47 locale codes for SpeechRecognition
+// Map our app UI language codes OR Profile Language strings to BCP-47 locale codes for SpeechRecognition
 const LANG_TO_LOCALE: Record<string, string> = {
   en: "en-US",
   fr: "fr-FR",
   ar: "ar-SA",
   tr: "tr-TR",
+  // Profile languages
+  English: "en-US",
+  French: "fr-FR",
+  Arabic: "ar-SA",
+  Turkish: "tr-TR",
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SR = any;
 
-export function ChatInput({ onSend, disabled }: ChatInputProps) {
+export function ChatInput({ onSend, disabled, profileLanguage }: ChatInputProps) {
   const { lang } = useLang();
   const [value, setValue] = useState("");
   const [isListening, setIsListening] = useState(false);
@@ -82,7 +88,8 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
     const recognition: SR = new SRClass();
     recognitionRef.current = recognition;
 
-    recognition.lang = LANG_TO_LOCALE[lang] ?? "en-US";
+    const targetLangCode = profileLanguage ? profileLanguage : lang;
+    recognition.lang = LANG_TO_LOCALE[targetLangCode] ?? "en-US";
     recognition.continuous = false;     // ← one phrase at a time (no duplicates)
     recognition.interimResults = true;  // show partial words while speaking
 
@@ -159,7 +166,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
     const t = setTimeout(() => startListening(), 200);
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lang]);
+  }, [lang, profileLanguage]);
 
   // Cleanup on unmount
   useEffect(() => {

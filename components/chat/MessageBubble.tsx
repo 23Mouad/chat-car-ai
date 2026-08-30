@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useMemo } from "react";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import type { ChatMessage } from "@/types/chat";
@@ -34,9 +35,38 @@ function CarAvatar() {
   );
 }
 
-export function MessageBubble({ message, isLast, index = 0 }: MessageBubbleProps) {
+// ── Markdown renderer — memoised so it doesn't re-parse on every token ───────
+const MemoMarkdown = memo(function MemoMarkdown({ content }: { content: string }) {
+  return (
+    <div className="prose prose-sm max-w-none
+      prose-p:my-1 prose-p:leading-relaxed
+      prose-ul:my-1.5 prose-ul:pl-4
+      prose-ol:my-1.5 prose-ol:pl-4
+      prose-li:my-0.5
+      prose-strong:font-semibold prose-strong:text-[#14142B]
+      prose-headings:font-bold prose-headings:text-[#14142B] prose-headings:mt-2 prose-headings:mb-1
+      prose-code:bg-[#EEF0FF] prose-code:text-[#6C7CFF] prose-code:rounded prose-code:px-1 prose-code:py-0.5 prose-code:text-xs
+    ">
+      <ReactMarkdown>{content}</ReactMarkdown>
+    </div>
+  );
+});
+
+// ── Main bubble — memo stops re-render unless message content changes ─────────
+export const MessageBubble = memo(function MessageBubble({
+  message,
+  isLast,
+  index = 0,
+}: MessageBubbleProps) {
   const isUser = message.role === "user";
-  const displayContent = stripProfileTag(message.content);
+
+  // useMemo: only recompute when content changes (avoids work on sibling re-renders)
+  const displayContent = useMemo(
+    () => stripProfileTag(message.content),
+    [message.content]
+  );
+
+  const timeStr = useMemo(() => formatTime(message.timestamp), [message.timestamp]);
 
   if (!displayContent) return null;
 
@@ -45,7 +75,8 @@ export function MessageBubble({ message, isLast, index = 0 }: MessageBubbleProps
       className={`flex gap-2.5 ${isUser ? "flex-row-reverse" : "flex-row"} items-end`}
       initial={{ opacity: 0, y: 14, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.3, ease: [0.21, 0.47, 0.32, 0.98], delay: index * 0.05 }}
+      // Only animate on first appearance; after that transitions are instant
+      transition={{ duration: 0.28, ease: [0.21, 0.47, 0.32, 0.98], delay: Math.min(index * 0.04, 0.2) }}
     >
       {/* Avatar */}
       {!isUser && <CarAvatar />}
@@ -62,25 +93,15 @@ export function MessageBubble({ message, isLast, index = 0 }: MessageBubbleProps
           {isUser ? (
             <p className="whitespace-pre-wrap font-medium">{displayContent}</p>
           ) : (
-            <div className="prose prose-sm max-w-none
-              prose-p:my-1 prose-p:leading-relaxed
-              prose-ul:my-1.5 prose-ul:pl-4
-              prose-ol:my-1.5 prose-ol:pl-4
-              prose-li:my-0.5
-              prose-strong:font-semibold prose-strong:text-[#14142B]
-              prose-headings:font-bold prose-headings:text-[#14142B] prose-headings:mt-2 prose-headings:mb-1
-              prose-code:bg-[#EEF0FF] prose-code:text-[#6C7CFF] prose-code:rounded prose-code:px-1 prose-code:py-0.5 prose-code:text-xs
-            ">
-              <ReactMarkdown>{displayContent}</ReactMarkdown>
-            </div>
+            <MemoMarkdown content={displayContent} />
           )}
         </div>
 
         {/* Timestamp */}
         <span className={`text-[10px] text-[#B0B0C8] px-1 ${isUser ? "text-right" : "text-left"}`}>
-          {formatTime(message.timestamp)}
+          {timeStr}
         </span>
       </div>
     </motion.div>
   );
-}
+});

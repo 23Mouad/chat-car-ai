@@ -27,27 +27,29 @@ export function Hero() {
           <Image
             src="/logo1.png"
             alt="Talk Cars"
-            width={140}
-            height={140}
-            className="h-10 w-auto object-contain w-18 h-18"
+            width={120}
+            height={120}
+            className="h-9 w-auto object-contain"
             priority
           />
         </Link>
 
         {/* Nav links + Switcher */}
-        <div className="flex items-center gap-3 md:gap-4 flex-wrap justify-end">
+        <div className="flex items-center gap-2 md:gap-4">
+          {/* Links — hidden on mobile */}
           <div className="hidden md:flex items-center gap-5">
             <Link href="/chat" className="text-sm font-medium text-[#5B5B70] hover:text-[#6C7CFF] transition-colors">{n.chat}</Link>
             <Link href="#features" className="text-sm font-medium text-[#5B5B70] hover:text-[#6C7CFF] transition-colors">{n.features}</Link>
             <Link href="#about" className="text-sm font-medium text-[#5B5B70] hover:text-[#6C7CFF] transition-colors">{n.about}</Link>
           </div>
 
-          {/* Language switcher */}
+          {/* Language switcher — always visible */}
           <LangSwitcher />
 
+          {/* CTA */}
           <Link
             href="/chat"
-            className="px-4 py-2 rounded-full bg-gradient-to-r from-[#6C7CFF] to-[#C86CFF] text-white text-sm font-semibold shadow-[0_4px_16px_rgba(108,124,255,0.35)] hover:shadow-[0_6px_22px_rgba(108,124,255,0.5)] transition-all duration-200 whitespace-nowrap"
+            className="px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-gradient-to-r from-[#6C7CFF] to-[#C86CFF] text-white text-xs md:text-sm font-semibold shadow-[0_4px_16px_rgba(108,124,255,0.35)] hover:shadow-[0_6px_22px_rgba(108,124,255,0.5)] transition-all duration-200 whitespace-nowrap"
           >
             {n.startChatting}
           </Link>

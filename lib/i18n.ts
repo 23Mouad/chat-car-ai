@@ -65,6 +65,11 @@ export const translations: Record<Lang, Translations> = {
       error: "Connection lost. Please try again.",
       errorDismiss: "Dismiss error",
     },
+    socialProof: {
+      trusted: "Trusted by car buyers worldwide",
+      activeNow: "Active right now",
+      totalVisits: "Total visits",
+    },
   },
 
   fr: {
@@ -121,6 +126,11 @@ export const translations: Record<Lang, Translations> = {
       history: "Historique des chats",
       error: "Connexion perdue. Veuillez réessayer.",
       errorDismiss: "Fermer",
+    },
+    socialProof: {
+      trusted: "Fait confiance par les acheteurs du monde entier",
+      activeNow: "Actifs en ce moment",
+      totalVisits: "Visites totales",
     },
   },
 
@@ -179,6 +189,11 @@ export const translations: Record<Lang, Translations> = {
       error: "انقطع الاتصال. حاول مرة أخرى.",
       errorDismiss: "إغلاق",
     },
+    socialProof: {
+      trusted: "موثوق به من قبل مشتري السيارات عالمياً",
+      activeNow: "مستخدمين نشطين الآن",
+      totalVisits: "إجمالي الزيارات",
+    },
   },
 
   tr: {
@@ -236,6 +251,11 @@ export const translations: Record<Lang, Translations> = {
       error: "Bağlantı kesildi. Lütfen tekrar deneyin.",
       errorDismiss: "Kapat",
     },
+    socialProof: {
+      trusted: "Dünya çapında alıcılar tarafından güvenilen",
+      activeNow: "Şu anda aktif",
+      totalVisits: "Toplam ziyaretler",
+    },
   },
 };
 
@@ -283,5 +303,10 @@ export interface Translations {
     history: string;
     error: string;
     errorDismiss: string;
+  };
+  socialProof: {
+    trusted: string;
+    activeNow: string;
+    totalVisits: string;
   };
 }

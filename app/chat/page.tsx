@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { History, Plus } from "lucide-react";
 import Image from "next/image";
@@ -12,10 +13,15 @@ import { ChatInput } from "@/components/chat/ChatInput";
 import { SuggestedChips } from "@/components/chat/SuggestedChips";
 import { ProfileProgress } from "@/components/chat/ProfileProgress";
 import { GradientOrb } from "@/components/ui/GradientOrb";
-import { ChatHistory } from "@/components/chat/ChatHistory";
 import { LangSwitcher } from "@/components/ui/LangSwitcher";
 import { useLang } from "@/lib/langContext";
 import type { ChatMessage, UserProfile } from "@/types/chat";
+
+// Lazy-load the chat history drawer — it's never visible on initial render
+const ChatHistory = dynamic(
+  () => import("@/components/chat/ChatHistory").then((m) => m.ChatHistory),
+  { ssr: false }
+);
 
 /* ─── Helpers ─────────────────────────────────────────────── */
 
@@ -100,9 +106,9 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [activeId, isStreaming, conversations]);
 
-  const active = getActive();
-  const messages: ChatMessage[] = active?.messages ?? [];
-  const profile: Partial<UserProfile> = active?.profile ?? {};
+  const active = useMemo(() => getActive(), [getActive, conversations, activeId]);
+  const messages: ChatMessage[] = useMemo(() => active?.messages ?? [], [active]);
+  const profile: Partial<UserProfile> = useMemo(() => active?.profile ?? {}, [active]);
 
   const handleNewChat = useCallback(() => {
     newConversation();
@@ -196,8 +202,28 @@ export default function ChatPage() {
   const showEmptyState = messages.length === 0;
   const showTypingIndicator = isStreaming && (messages.length === 0 || messages[messages.length - 1]?.content === "");
 
+  // ── Fix: mobile keyboard pushes input off-screen ───────────────────────────
+  // On mobile, when the soft keyboard appears the viewport shrinks.
+  // We track `window.visualViewport.height` and pin the chat container to it.
+  const [viewH, setViewH] = useState<string>("100dvh");
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => setViewH(`${vv.height}px`);
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    update();
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, []);
+
   return (
-    <div className="relative h-dvh bg-[#F5F6FC] flex items-stretch justify-center overflow-hidden">
+    <div
+      className="relative bg-[#F5F6FC] flex items-stretch justify-center overflow-hidden"
+      style={{ height: viewH }}
+    >
       {/* Background orbs */}
       <div className="orb-bg">
         <GradientOrb color="radial-gradient(circle, #C9B6FF, transparent)" size={520} top="-80px" left="-130px" opacity={0.45} delay={0} />
@@ -213,8 +239,8 @@ export default function ChatPage() {
       />
 
       {/* Chat card */}
-      <div className="relative z-10 w-full max-w-[540px] flex flex-col h-dvh">
-        <div className="flex-1 flex flex-col md:my-5 md:rounded-[32px] md:overflow-hidden md:shadow-[0_28px_90px_rgba(108,124,255,0.18)] glass">
+      <div className="relative z-10 w-full max-w-[540px] flex flex-col" style={{ height: viewH }}>
+        <div className="flex-1 min-h-0 flex flex-col md:my-5 md:rounded-[32px] md:overflow-hidden md:shadow-[0_28px_90px_rgba(108,124,255,0.18)] glass">
 
           {/* ── Header ─────────────────────────────── */}
           <header className="sticky top-0 z-50 flex items-center justify-between px-4 py-3 border-b border-white/50 bg-white/60 backdrop-blur-xl flex-shrink-0">
@@ -260,7 +286,7 @@ export default function ChatPage() {
           </header>
 
           {/* ── Messages ───────────────────────────── */}
-          <div className="flex-1 overflow-y-auto scrollbar-thin px-4 py-5 flex flex-col gap-4" id="message-list">
+          <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin px-4 py-5 flex flex-col gap-4" id="message-list">
             {showEmptyState ? (
               !profile.language ? (
                 <motion.div
@@ -389,7 +415,10 @@ export default function ChatPage() {
           )}
 
           {/* ── Input bar ───────────────────────────── */}
-          <div className="flex-shrink-0 px-4 pt-2 pb-4 pb-safe border-t border-white/50 bg-white/50 backdrop-blur-sm">
+          <div
+            className="flex-shrink-0 px-4 pt-2 border-t border-white/50 bg-white/50 backdrop-blur-sm"
+            style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+          >
             <ChatInput onSend={handleSend} disabled={isStreaming} />
           </div>
         </div>

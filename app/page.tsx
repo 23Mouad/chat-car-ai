@@ -1,7 +1,19 @@
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import { Hero } from "@/components/landing/Hero";
-import { FeatureGrid } from "@/components/landing/FeatureGrid";
-import { AlgorixFooter } from "@/components/landing/AlgorixFooter";
+
+// Below-fold components: dynamically imported so they don't block the initial render.
+// Hero is static-imported (above fold, needs to be in the critical path).
+const SocialProof = dynamic(
+  () => import("@/components/landing/SocialProof").then((m) => m.SocialProof),
+  { ssr: false } // uses EventSource + browser APIs — client only
+);
+const FeatureGrid = dynamic(
+  () => import("@/components/landing/FeatureGrid").then((m) => m.FeatureGrid)
+);
+const AlgorixFooter = dynamic(
+  () => import("@/components/landing/AlgorixFooter").then((m) => m.AlgorixFooter)
+);
 
 export const metadata: Metadata = {
   title: "Talk Cars — Free AI Car Chat | مساعد السيارات الذكي | Assistant Auto IA | Araba AI",
@@ -21,7 +33,10 @@ export const metadata: Metadata = {
 export default function LandingPage() {
   return (
     <main className="min-h-screen bg-[#F5F6FC] overflow-x-hidden">
+      {/* Hero: above-fold — loaded in the critical JS bundle */}
       <Hero />
+      {/* Below-fold sections: lazy-loaded, split into separate JS chunks */}
+      <SocialProof />
       <FeatureGrid />
       <AlgorixFooter />
     </main>

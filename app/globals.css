@@ -79,6 +79,14 @@ body {
   pointer-events: none;
   overflow: hidden;
   z-index: 0;
+  /* Tell the browser to create a compositor layer — prevents layout thrashing from animations */
+  will-change: transform;
+  contain: layout style;
+}
+
+/* Ensure framer-motion orb animations use GPU compositing */
+.orb-bg > * {
+  will-change: transform, opacity;
 }
 
 /* Prose overrides for chat bubbles */

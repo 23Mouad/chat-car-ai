@@ -37,35 +37,39 @@ export function SocialProof() {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    let es: EventSource;
-    let retryTimeout: ReturnType<typeof setTimeout>;
+    // Dynamic import to avoid SSR issues with Pusher
+    import("pusher-js").then(({ default: Pusher }) => {
+      // Initialize Pusher
+      const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+        cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+        authEndpoint: "/api/pusher/auth",
+      });
 
-    // Generate a unique session ID for this browser tab.
-    // sessionStorage survives page refreshes but is isolated per-tab.
-    let clientId = sessionStorage.getItem("tc_client_id");
-    if (!clientId) {
-      clientId = Math.random().toString(36).substring(2, 10);
-      sessionStorage.setItem("tc_client_id", clientId);
-    }
+      // Presence channels must be prefixed with 'presence-'
+      const channel = pusher.subscribe("presence-site-visitors");
 
-    function connect() {
-      es = new EventSource(`/api/stats?clientId=${clientId}`);
-      es.onopen = () => setConnected(true);
-      es.onmessage = (event) => {
-        try {
-          const { active } = JSON.parse(event.data) as { active: number };
-          setActiveUsers(active);
-        } catch { /* ignore malformed frames */ }
+      // When successfully subscribed, we get the initial member list
+      channel.bind("pusher:subscription_succeeded", (members: any) => {
+        setActiveUsers(members.count);
+        setConnected(true);
+      });
+
+      // When a new user connects
+      channel.bind("pusher:member_added", () => {
+        setActiveUsers((prev) => (prev ? prev + 1 : 1));
+      });
+
+      // When a user disconnects
+      channel.bind("pusher:member_removed", () => {
+        setActiveUsers((prev) => (prev ? Math.max(0, prev - 1) : 0));
+      });
+
+      // Cleanup on unmount
+      return () => {
+        pusher.unsubscribe("presence-site-visitors");
+        pusher.disconnect();
       };
-      es.onerror = () => {
-        setConnected(false);
-        es.close();
-        retryTimeout = setTimeout(connect, 5_000);
-      };
-    }
-
-    connect();
-    return () => { clearTimeout(retryTimeout); es?.close(); };
+    });
   }, []);
 
   return (

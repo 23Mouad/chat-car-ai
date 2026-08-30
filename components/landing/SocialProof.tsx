@@ -40,8 +40,16 @@ export function SocialProof() {
     let es: EventSource;
     let retryTimeout: ReturnType<typeof setTimeout>;
 
+    // Generate a unique session ID for this browser tab.
+    // sessionStorage survives page refreshes but is isolated per-tab.
+    let clientId = sessionStorage.getItem("tc_client_id");
+    if (!clientId) {
+      clientId = Math.random().toString(36).substring(2, 10);
+      sessionStorage.setItem("tc_client_id", clientId);
+    }
+
     function connect() {
-      es = new EventSource("/api/stats");
+      es = new EventSource(`/api/stats?clientId=${clientId}`);
       es.onopen = () => setConnected(true);
       es.onmessage = (event) => {
         try {

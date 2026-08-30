@@ -1,37 +1,75 @@
-// Real-time active users via Server-Sent Events
-// Each browser that connects to this endpoint counts as 1 active user.
-// When they close the tab / navigate away → the connection closes → count drops.
+// Real-time active users via Server-Sent Events.
+// Active connections = true live concurrent users (in-memory, resets on deploy — this is fine).
+// Total visits = persistent, stored in Upstash Redis REST API (survives deploys).
+//
+// Required env vars:
+//   UPSTASH_REDIS_REST_URL  — e.g. https://us1-xxx.upstash.io
+//   UPSTASH_REDIS_REST_TOKEN — from your Upstash dashboard
+//
+// If env vars are missing, totalVisits falls back to an in-memory counter.
 
 export const dynamic = "force-dynamic";
 
 const encoder = new TextEncoder();
+const VISITS_KEY = "tc:total_visits";
 
-// In-memory state shared across all SSE connections in the same Node.js process.
-// Resets on server restart — totally fine for a single-instance deploy.
-// For multi-instance (e.g. Vercel Edge), you'd use Upstash Redis instead.
+// ── Upstash Redis helpers (raw REST — no package needed) ──────────────────────
+async function redisGet(key: string): Promise<number> {
+  const { UPSTASH_REDIS_REST_URL: url, UPSTASH_REDIS_REST_TOKEN: token } = process.env;
+  if (!url || !token) return 0;
+  try {
+    const res = await fetch(`${url}/get/${key}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    const json = await res.json() as { result: string | null };
+    return parseInt(json.result ?? "0", 10) || 0;
+  } catch {
+    return 0;
+  }
+}
+
+async function redisIncr(key: string): Promise<number> {
+  const { UPSTASH_REDIS_REST_URL: url, UPSTASH_REDIS_REST_TOKEN: token } = process.env;
+  if (!url || !token) return ++memVisits;
+  try {
+    const res = await fetch(`${url}/incr/${key}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    const json = await res.json() as { result: number };
+    return json.result ?? 0;
+  } catch {
+    return ++memVisits;
+  }
+}
+
+// ── In-memory fallback (used when Redis env vars are absent) ──────────────────
+let memVisits = 0;
+
+// ── In-memory active connections (real-time, this process only) ───────────────
 let activeConnections = 0;
-let totalVisits = 84_291; // realistic seeded baseline
 const clients = new Set<ReadableStreamDefaultController<Uint8Array>>();
 
-function broadcast() {
+function broadcast(active: number, total: number) {
   const frame = encoder.encode(
-    `data: ${JSON.stringify({ active: activeConnections, total: totalVisits })}\n\n`
+    `data: ${JSON.stringify({ active, total })}\n\n`
   );
   for (const ctrl of clients) {
     try {
       ctrl.enqueue(frame);
     } catch {
-      // client already gone
       clients.delete(ctrl);
     }
   }
 }
 
 export async function GET() {
+  // Increment real persistent visit count
+  const totalVisits = await redisIncr(VISITS_KEY);
   activeConnections++;
-  totalVisits++;
 
-  // We capture the controller reference so cancel() can clean up
   let ctrl!: ReadableStreamDefaultController<Uint8Array>;
   let pingTimer: ReturnType<typeof setInterval>;
 
@@ -40,17 +78,17 @@ export async function GET() {
       ctrl = controller;
       clients.add(controller);
 
-      // 1. Immediately send this user their first snapshot
+      // 1. Send this user their first snapshot
       controller.enqueue(
         encoder.encode(
           `data: ${JSON.stringify({ active: activeConnections, total: totalVisits })}\n\n`
         )
       );
 
-      // 2. Tell every OTHER connected client there's one more user
-      broadcast();
+      // 2. Broadcast updated active count to all other clients
+      broadcast(activeConnections, totalVisits);
 
-      // 3. Keepalive comment every 25 s — prevents proxies/Nginx from killing idle connections
+      // 3. Keepalive every 25 s — prevents Nginx / Vercel from closing idle streams
       pingTimer = setInterval(() => {
         try {
           controller.enqueue(encoder.encode(`: ping\n\n`));
@@ -61,11 +99,11 @@ export async function GET() {
     },
 
     cancel() {
-      // Browser closed the tab or navigated away
       clearInterval(pingTimer);
       clients.delete(ctrl);
       activeConnections = Math.max(0, activeConnections - 1);
-      broadcast(); // tell everyone the count dropped
+      // Note: we don't decrement totalVisits — a visit already happened
+      broadcast(activeConnections, totalVisits);
     },
   });
 
@@ -74,7 +112,7 @@ export async function GET() {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache, no-transform",
       Connection: "keep-alive",
-      "X-Accel-Buffering": "no", // disables Nginx response buffering
+      "X-Accel-Buffering": "no",
     },
   });
 }

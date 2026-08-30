@@ -59,7 +59,7 @@ export function Hero() {
       {/* Algorix badge — mobile */}
       <motion.a
         href="#about"
-        className="absolute top-5 right-6 md:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-white/60 backdrop-blur-sm border border-white/50 shadow-sm"
+        className="absolute top-5 right-6 hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-white/60 backdrop-blur-sm border border-white/50 shadow-sm"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1, duration: 0.5 }}
